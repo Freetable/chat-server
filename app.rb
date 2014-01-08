@@ -45,7 +45,7 @@ get '/' do
 
     request.websocket do |ws|
 		
-			redis = Redis.new
+			redis = Redis.new( :host => ENV['OPENSHIFT_REDIS_HOST'], :port => ENV['OPENSHIFT_REDIS_PORT'], :password => ENV['REDIS_PASSWORD'] )
   		
 			ws.onopen do
         ws.send("Hello World!")
