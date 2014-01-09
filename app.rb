@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # ruby examples/echochat.rb
 
+require 'uuidtools'
+require 'mongo_mapper'
 require 'ostruct'
 require 'json'
 require 'base32'
@@ -11,6 +13,46 @@ require 'redis'
 
 set :server, 'thin'
 set :sockets, []
+
+# This is needed to force overrides 
+@@owner_uuid = ''
+
+class User
+	include MongoMapper::Document
+	key :uid, String, :required => true
+	key :sid, String, :required => true
+	key :username, String, :required => true
+
+	key :next_song, String
+	key :current_room, String
+	key :online, Boolean
+
+	timestamps!
+end
+
+
+# This is the server metadata that is spit back when something requests it
+
+class Metadata 
+	include MongoMapper::Document
+	# Name or short description of server
+  key :name, String
+	# Long description
+  key :description, String
+	# URL
+  key :url, String
+	key :current_users, Integer
+	key :max_users, Integer
+	key :uuid, String, :required => true
+	many :staffs
+end
+
+class Staff
+	include MongoMapper::Document
+	key :uuid, String
+	key :acl_level, String
+	belongs_to :Metadata
+end
 
 def digest_and_validate( base32 )
 	#This needs to validate the user if authenticated as well.
@@ -26,17 +68,96 @@ def digest_and_validate( base32 )
 
 end
 
+configure do
+  if(ENV['OPENSHIFT_MONGODB_DB_URL'].nil?)
+    MongoMapper.database = 'ft-chat-server'
+  else
+		MongoMapper.connection = Mongo::Connection.new(ENV['OPENSHIFT_MONGODB_DB_HOST'],ENV['OPENSHIFT_MONGODB_DB_PORT'])
+		MongoMapper.database = ENV['OPENSHIFT_GEAR_NAME']
+		# This is kind of mind boggling, but it's the "way"
+		MongoMapper.connection[ENV['OPENSHIFT_GEAR_NAME']].authenticate(ENV['OPENSHIFT_MONGODB_DB_USERNAME'],ENV['OPENSHIFT_MONGODB_DB_PASSWORD'])
+  end
+	# If we have a connection and no meta data, then define this server a uuid
+	if !Metadata.all.nil? && Metadata.all.first.nil?
+		our_server = Metadata.new
+		our_server.uuid = UUIDTools::UUID.random_create
+    our_server.save
+	end
+end
+
+#this should push a static file from somewhere
+get '/' do
+#Cache for 600 seconds
+end
+
+# This is for lb stuff eventually
 get '/health' do
+#Cache for 60 seconds
 '1'
 end
 
-get '/api/publish/:payload' do
-
+get '/meta' do
+#Cache for 60 seconds
 end
 
-get '/' do
+get '/users' do
+#Cache 30 seconds
+end
+
+#This should be coming to set the cookies and redirect to /
+get '/connect' do
+#No cache
+end
+
+post '/quit' do
+	my_fields = [ 'uid', 'sid' ]
+
+	my_fields.each { |field| if(params[field].nil?); fail = true; break; end }
+	return ['-0'=>'-0'].to_json if fail
+
+  my_user = User.find_by_uid(params['uid'])
+	
+	if(my_user.sid == params['sid'])
+		my_user.online = false
+	  my_user.save
+		return ['1'=>'1'].to_json
+	end
+	return ['0'=>'0'].to_json 
+end
+
+post '/heartbeat' do
+  my_fields = [ 'uid', 'sid' ]
+
+  my_fields.each { |field| if(params[field].nil?); fail = true; break; end }
+  return ['-0'=>'-0'].to_json if fail
+
+	my_user = User.find_by_uid(params['uid'])
+
+	if(my_user.sid == params['sid'])
+		my_user.online = true
+		my_user.save 
+  	return ['1'=>'1'].to_json
+	end
+	return ['0'=>'0'].to_json	
+end
+
+####Per Room
+
+# Index for "room"
+get '/:room' do
+#Cache for 60 seconds
+end
+
+# Send Message to "room"
+post '/:room/send_msg' do
+#No Cache
+end
+
+# Websocket for "room"
+get '/:room/link' do
+#No Cache
   if !request.websocket?
-    #redirect "/"
+    redirect "/"
   else
 		
 #		payload = digest_and_validate(params[:payload])

@@ -1,5 +1,8 @@
 source 'https://rubygems.org'
 
+gem 'uuidtools'
+gem 'bson_ext'
+gem 'mongo_mapper'
 gem 'json'
 gem 'base32'
 gem 'thin'
