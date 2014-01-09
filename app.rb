@@ -17,6 +17,15 @@ set :sockets, []
 # This is needed to force overrides 
 @@owner_uuid = ''
 
+class ServerBanlist
+	key :uid, String, :required => true
+	key :reason, String, :required => true
+	key :by, String, :required => true
+	key :expires, Time, :require => true
+
+	timestamps!
+end
+
 class User
 	include MongoMapper::Document
 	key :uid, String, :required => true
@@ -30,6 +39,17 @@ class User
 	timestamps!
 end
 
+# This is for the future atm!
+class Rooms
+	include MongoMapper::Document
+	key :name, String, :requried => true
+	key :owner_uuid, String, :required => true
+	key :description, String, :required => true
+	key :last_played, Array
+	key :mods, Array
+
+	timestamps!
+end
 
 # This is the server metadata that is spit back when something requests it
 
