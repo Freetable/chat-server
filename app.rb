@@ -17,38 +17,43 @@ set :sockets, []
 # This is needed to force overrides 
 @@owner_uuid = ''
 
-class ServerBanlist
+#Ban sub doc
+lass Ban
+	include MongoMapper::EmbeddedDocument
 	key :uid, String, :required => true
 	key :reason, String, :required => true
 	key :by, String, :required => true
 	key :expires, Time, :require => true
-
 	timestamps!
 end
 
-class User
+class ServerBans
+	include MongoMapper::Document
+	many :bans
+end
+
+class Users
 	include MongoMapper::Document
 	key :uid, String, :required => true
 	key :sid, String, :required => true
 	key :username, String, :required => true
-
 	key :next_song, String
 	key :current_room, String
 	key :online, Boolean
-
 	timestamps!
 end
 
 # This is for the future atm!
 class Rooms
 	include MongoMapper::Document
-	key :name, String, :requried => true
-	key :owner_uuid, String, :required => true
-	key :description, String, :required => true
-	key :last_played, Array
-	key :mods, Array
-
-	timestamps!
+	key :name, String, :requried => true										# Room name
+	key :owner_uuid, String, :required => true							# Owner uid
+	key :description, String, :required => true							# Room Description
+	key :last_played, Array																	# Array of songids
+	key :mods, Array																				# Array of moderators
+	key :current_users, Array																# Array of userids
+	many :bans																							# Embedded sublist of bans, the reason we don't do the same with users is there is no need for the data duplication
+ 	timestamps!
 end
 
 # This is the server metadata that is spit back when something requests it
