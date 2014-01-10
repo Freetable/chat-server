@@ -18,7 +18,7 @@ set :sockets, []
 @@owner_uuid = ''
 
 #Ban sub doc
-lass Ban
+class Ban
 	include MongoMapper::EmbeddedDocument
 	key :uid, String, :required => true
 	key :reason, String, :required => true
@@ -53,7 +53,7 @@ class Rooms
 	key :mods, Array																				# Array of moderators
 	key :current_users, Array																# Array of userids
 	many :bans																							# Embedded sublist of bans, the reason we don't do the same with users is there is no need for the data duplication
- 	timestamps!
+	timestamps!
 end
 
 # This is the server metadata that is spit back when something requests it
