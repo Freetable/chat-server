@@ -138,6 +138,7 @@ end
 #this should push a static file from somewhere
 get '/' do
 #Cache for 600 seconds
+"High"
 end
 
 # This is for lb stuff eventually
