@@ -158,6 +158,7 @@ end
 #This should be coming to set the cookies and redirect to /
 get '/api/connect/:uid/:sid' do
 #No cache
+"High aswell #{params[:uid]} @ #{params[:sid]}"
 end
 
 post '/api/quit' do
