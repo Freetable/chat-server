@@ -13,6 +13,7 @@ require 'redis'
 require 'connection_pool'
 require 'hiredis'
 require 'em-synchrony'
+require 'rest_client'
 
 set :server, 'thin'
 set :sockets, []
@@ -21,9 +22,10 @@ set :sockets, []
 OWNERUUID 		= ''
 #This isn't a hard limit btw this is used to define socket pools.  
 SOCKETS 			= 64
-FUNCTIONFAIL 	= '{"Result": "-0"}'
-RETURNFAIL 		= '{"Result": "0"}'
-RETURNSUCCESS = '{"Result": "1"}'
+FUNCTIONFAIL 	= '{"result": "-0"}'
+RETURNFAIL 		= '{"result": "0"}'
+RETURNSUCCESS = '{"result": "1"}'
+NETWORKSERVICESURL = 'http://gatekeepers.freetable.info'
 
 #Ban sub doc
 class Ban
@@ -102,9 +104,15 @@ end
 # end
 
 def validate_user(uid,sid)
-	# Check our local op cache
 	# Check Redis
+	@@redis_pool.with do |redis|
+		r_result = redis.get(uid)
+		return true if ((!r_result.nil?)&&(r_result == sid))
+	end
 	# Check Network Services
+	
+	ns_result = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/verify_user.pls?wwuserid='+uid+'&sessionid='+sid).to_str))
+
 
 end
 
@@ -138,20 +146,20 @@ get '/health' do
 '1'
 end
 
-get '/meta' do
+get '/api/meta' do
 #Cache for 60 seconds
 end
 
-get '/users' do
+get '/api/users' do
 #Cache 30 seconds
 end
 
 #This should be coming to set the cookies and redirect to /
-get '/connect' do
+get '/api/connect/:uid/:sid' do
 #No cache
 end
 
-post '/quit' do
+post '/api/quit' do
 	my_fields = [ 'uid', 'sid' ]
 
 	my_fields.each { |field| if(params[field].nil?); fail = true; break; end }
@@ -167,7 +175,7 @@ post '/quit' do
 	return ['0'=>'0'].to_json 
 end
 
-post '/heartbeat' do
+post '/api/heartbeat' do
   my_fields = [ 'uid', 'sid' ]
 
   my_fields.each { |field| if(params[field].nil?); fail = true; break; end }

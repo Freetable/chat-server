@@ -13,3 +13,4 @@ gem 'sinatra-respond_to'
 gem 'connection_pool'
 gem "hiredis", "~> 0.4.5"
 gem "em-synchrony"
+gem "rest-client"
