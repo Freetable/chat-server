@@ -113,7 +113,7 @@ def validate_user(uid,sid)
 	
 	ns_result = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/verify_user.pls?wwuserid='+uid+'&sessionid='+sid).to_str))
 
-
+	return ns_result
 end
 
 configure do
@@ -158,7 +158,8 @@ end
 #This should be coming to set the cookies and redirect to /
 get '/api/connect/:uid/:sid' do
 #No cache
-"High aswell #{params[:uid]} @ #{params[:sid]}"
+#"High aswell #{params[:uid]} @ #{params[:sid]}"
+validate_user(params[:uid], params[:sid])
 end
 
 post '/api/quit' do
