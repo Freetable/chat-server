@@ -10,4 +10,6 @@ gem 'redis'
 gem 'sinatra'
 gem 'sinatra-websocket'
 gem 'sinatra-respond_to'
-
+gem 'connection_pool'
+gem "hiredis", "~> 0.4.5"
+gem "em-synchrony"

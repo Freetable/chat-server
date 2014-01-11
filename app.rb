@@ -10,12 +10,20 @@ require 'sinatra'
 require 'sinatra-websocket'
 require 'sinatra/respond_to'
 require 'redis'
+require 'connection_pool'
+require 'hiredis'
+require 'em-synchrony'
 
 set :server, 'thin'
 set :sockets, []
 
-# This is needed to force overrides 
-@@owner_uuid = ''
+#Constants (Todo: Move to another file)
+OWNERUUID 		= ''
+#This isn't a hard limit btw this is used to define socket pools.  
+SOCKETS 			= 64
+FUNCTIONFAIL 	= '{"Result": "-0"}'
+RETURNFAIL 		= '{"Result": "0"}'
+RETURNSUCCESS = '{"Result": "1"}'
 
 #Ban sub doc
 class Ban
@@ -79,24 +87,33 @@ class Staff
 	belongs_to :Metadata
 end
 
-def digest_and_validate( base32 )
-	#This needs to validate the user if authenticated as well.
+# Archive Purposes
+# def digest_and_validate( base32 )
+#	#This needs to validate the user if authenticated as well.
+#
+#	payload = OpenStruct.new(JSON.parse(Base32.decode( base32 ),{ :symbolize_names => true }))
+#
+#  if(payload.from.nil?) then payload.valid = false; payload.error = 'bad from'; 		return payload; end
+#  if(payload.to.nil?) 	then payload.valid = false; payload.error = 'bad to';    		return payload; end
+#	if(payload.ver.nil?) 	then payload.valid = false; payload.error = 'bad version';	return payload; end
+#  if(payload.pay.nil?) 	then payload.valid = false; payload.error = 'bad payload';	return payload; end
+#
+#	payload.valid = true; payload.error = 'none'; return payload
+# end
 
-	payload = OpenStruct.new(JSON.parse(Base32.decode( base32 ),{ :symbolize_names => true }))
-
-  if(payload.from.nil?) then payload.valid = false; payload.error = 'bad from'; 		return payload; end
-  if(payload.to.nil?) 	then payload.valid = false; payload.error = 'bad to';    		return payload; end
-	if(payload.ver.nil?) 	then payload.valid = false; payload.error = 'bad version';	return payload; end
-  if(payload.pay.nil?) 	then payload.valid = false; payload.error = 'bad payload';	return payload; end
-
-	payload.valid = true; payload.error = 'none'; return payload
+def validate_user(uid,sid)
+	# Check our local op cache
+	# Check Redis
+	# Check Network Services
 
 end
 
 configure do
   if(ENV['OPENSHIFT_MONGODB_DB_URL'].nil?)
     MongoMapper.database = 'ft-chat-server'
+		@@redis_pool = ConnectionPool.new(:size => SOCKETS, :timeout => 5) { Redis.new }
   else
+		@@redis_pool = ConnectionPool.new(:size => SOCKETS, :timeout => 5) { Redis.new( :host => ENV['OPENSHIFT_REDIS_HOST'], :port => ENV['OPENSHIFT_REDIS_PORT'], :password => ENV['REDIS_PASSWORD'] ) }
 		MongoMapper.connection = Mongo::Connection.new(ENV['OPENSHIFT_MONGODB_DB_HOST'],ENV['OPENSHIFT_MONGODB_DB_PORT'])
 		MongoMapper.database = ENV['OPENSHIFT_GEAR_NAME']
 		# This is kind of mind boggling, but it's the "way"
@@ -174,9 +191,22 @@ get '/:room' do
 end
 
 # Send Message to "room"
-post '/:room/send_msg' do
+get '/:room/send_msg/:msg' do
 #No Cache
+  payload = OpenStruct.new(JSON.parse(Base32.decode( params[:msg] ),{ :symbolize_names => true }))
+
+  if(payload.userid.nil?) then return FUNCTIONFAIL; end
+  if(payload.sessionid.nil?) then return FUNCTIONFAIL; end
+  if(payload.message.nil?) then return FUNCTIONFAIL; end
+
+	if(validate_user(userid, sessionid))
+		# Connect to redis and post
+	else
+		return RETURNFAIL
+	end
+	
 end
+
 
 # Websocket for "room"
 get '/:room/link' do
@@ -191,7 +221,7 @@ get '/:room/link' do
 
     request.websocket do |ws|
 		
-			redis = Redis.new( :host => ENV['OPENSHIFT_REDIS_HOST'], :port => ENV['OPENSHIFT_REDIS_PORT'], :password => ENV['REDIS_PASSWORD'] )
+			redis = Redis.new( :driver => :synchrony, :host => ENV['OPENSHIFT_REDIS_HOST'], :port => ENV['OPENSHIFT_REDIS_PORT'], :password => ENV['REDIS_PASSWORD'] )
   		
 			ws.onopen do
         ws.send("Hello World!")

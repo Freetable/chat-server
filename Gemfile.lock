@@ -13,6 +13,7 @@ GEM
     bson_ext (1.9.2)
       bson (~> 1.9.2)
     builder (3.0.4)
+    connection_pool (1.2.0)
     daemons (1.1.9)
     em-websocket (0.3.8)
       addressable (>= 2.1.1)
@@ -56,6 +57,7 @@ PLATFORMS
 DEPENDENCIES
   base32
   bson_ext
+  connection_pool
   json
   mongo_mapper
   redis
