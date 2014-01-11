@@ -111,9 +111,16 @@ def validate_user(uid,sid)
 	end
 	# Check Network Services
 	
-	ns_result = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/verify_user.pls?wwuserid='+uid+'&sessionid='+sid).to_str))
-
-	return ns_result
+	ns_result = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/verify_user.pls?wwuserid='+uid+'&sessionid='+sid).to_str).first)
+	if (ns_result.result.to_i == 1)
+		@@redis_pool.with do |redis|
+			redis.set(uid, sid)
+			redis.expire(uid, 600)
+		end
+		return true
+	else
+		return false
+	end
 end
 
 configure do
@@ -159,7 +166,9 @@ end
 get '/api/connect/:uid/:sid' do
 #No cache
 #"High aswell #{params[:uid]} @ #{params[:sid]}"
-validate_user(params[:uid], params[:sid])
+answer = validate_user(params[:uid], params[:sid])
+return "perfect" if answer
+return "fake"
 end
 
 post '/api/quit' do
