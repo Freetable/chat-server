@@ -8,9 +8,6 @@ set :sockets, []
 OWNERUUID 		= ''
 #This isn't a hard limit btw this is used to define socket pools.  
 SOCKETS 			= 64
-FUNCTIONFAIL 	= '{"result": "-0"}'
-RETURNFAIL 		= '{"result": "0"}'
-RETURNSUCCESS = '{"result": "1"}'
 NETWORKSERVICESURL = 'http://gatekeepers.freetable.info'
 
 #Ban sub doc
@@ -161,32 +158,32 @@ post '/api/quit' do
 	my_fields = [ 'uid', 'sid' ]
 
 	my_fields.each { |field| if(params[field].nil?); fail = true; break; end }
-	return ['-0'=>'-0'].to_json if fail
+	return Freetable::FUNCTIONFAIL if fail
 
   my_user = User.find_by_uid(params['uid'])
 	
 	if(my_user.sid == params['sid'])
 		my_user.online = false
 	  my_user.save
-		return ['1'=>'1'].to_json
+		return Freetable::RETURNSUCCESS 
 	end
-	return ['0'=>'0'].to_json 
+	return Freetable::RETURNFAIL
 end
 
 post '/api/heartbeat' do
   my_fields = [ 'uid', 'sid' ]
 
   my_fields.each { |field| if(params[field].nil?); fail = true; break; end }
-  return ['-0'=>'-0'].to_json if fail
+  return Freetable::FUNCTIONFAIL if fail
 
 	my_user = User.find_by_uid(params['uid'])
 
 	if(my_user.sid == params['sid'])
 		my_user.online = true
 		my_user.save 
-  	return ['1'=>'1'].to_json
+  	return Freetable::RETURNSUCCESS
 	end
-	return ['0'=>'0'].to_json	
+	return Freetable::RETURNFAIL
 end
 
 ####Per Room
@@ -208,7 +205,7 @@ get '/:room/send_msg/:msg' do
 	if(validate_user(userid, sessionid))
 		# Connect to redis and post
 	else
-		return RETURNFAIL
+		return Freetable::RETURNFAIL
 	end
 	
 end
