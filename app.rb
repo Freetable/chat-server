@@ -1,20 +1,6 @@
 #!/usr/bin/env ruby
 # ruby examples/echochat.rb
 
-require 'uuidtools'
-require 'mongo_mapper'
-require 'ostruct'
-require 'json'
-require 'base32'
-require 'sinatra'
-require 'sinatra-websocket'
-require 'sinatra/respond_to'
-require 'redis'
-require 'connection_pool'
-require 'hiredis'
-require 'em-synchrony'
-require 'rest_client'
-
 set :server, 'thin'
 set :sockets, []
 

@@ -14,3 +14,4 @@ gem 'connection_pool'
 gem "hiredis", "~> 0.4.5"
 gem "em-synchrony"
 gem "rest-client"
+gem 'ft-common', :git => 'git://github.com/Freetable/ft-common.git' 
