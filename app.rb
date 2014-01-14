@@ -189,7 +189,8 @@ end
 # Index for "room"
 get '/:room' do
 #Cache for 60 seconds
-cookies[:WWUSERID]
+redirect './' if ((cookies[:WWUSERID].nil?)||(cookies[:sessionid].nil?))
+params[:room]+' '+cookies[:WWUSERID]+' '+cookies[:sessionid]
 end
 
 # Send Message to "room"
@@ -214,13 +215,8 @@ end
 get '/:room/link' do
 #No Cache
   if !request.websocket?
-    redirect "/"
+    redirect "./"
   else
-		
-#		payload = digest_and_validate(params[:payload])
-
-#		return(payload.error) if !payload.valid
-
     request.websocket do |ws|
 		
 			redis = Redis.new( :driver => :synchrony, :host => ENV['OPENSHIFT_REDIS_HOST'], :port => ENV['OPENSHIFT_REDIS_PORT'], :password => ENV['REDIS_PASSWORD'] )
@@ -229,15 +225,17 @@ get '/:room/link' do
         ws.send("Hello World!")
         settings.sockets << ws
 
-      	redis.subscribe(:main) do |on|
+      	redis.subscribe(params[:room]) do |on|
 
         	on.subscribe do |channel, subscriptions|
         		# puts "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
-          	ws.send "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
+						wsdata = Hash.new
+						wsdata[:misc] = "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
+          	ws.send wsdata.to_json
         	end
 
         	on.message do |channel, message|
-          	ws.send "##{channel}: #{message}"
+          	ws.send message
         	end
 
       	end
