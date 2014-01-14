@@ -28,7 +28,6 @@ end
 class Users
 	include MongoMapper::Document
 	key :uid, String, :required => true
-	key :sid, String, :required => true
 	key :username, String, :required => true
 	key :next_song, String
 	key :current_room, String
@@ -73,11 +72,19 @@ class Staff
 end
 
 def validate_user(uid,sid)
+	# Create Record for user if it doesn't already exist
+  if(Users.find_by_uid(params['uid']).nil?)
+      user = Users.new
+      user.uid = uid
+      user.username = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/query_user.pls?wwuserid='+uid).to_str).first).result
+      user.save
+    end
+
 	# Check Redis
 	@@redis_pool.with do |redis|
 		r_result = redis.get(uid)
 		if ((!r_result.nil?)&&(r_result == sid))
-			user = User.find_by_uid(params['uid'])
+			user = Users.find_by_uid(params['uid'])
 			user.online = true
 			user.save
 			return true
@@ -88,6 +95,9 @@ def validate_user(uid,sid)
 	
 	ns_result = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/verify_user.pls?wwuserid='+uid+'&sessionid='+sid).to_str).first)
 	if (ns_result.result.to_i == 1)
+		user = Users.find_by_uid(params['uid'])
+		user.online = true
+		user.save
 		@@redis_pool.with do |redis|
 			redis.set(uid, sid)
 			redis.expire(uid, 600)
@@ -154,7 +164,7 @@ end
 get '/api/quit/:uid/:sid' do
 	answer = validate_user(params[:uid], params[:sid])
 if answer
-	user = User.find_by_uid(params['uid'])
+	user = Users.find_by_uid(params['uid'])
 	user.online = false
 	user.save
 	@@redis_pool.with { |redis| redis.delete(params[:uid]) }
