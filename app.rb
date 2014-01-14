@@ -173,20 +173,6 @@ else
 end
 end
 
-
-  my_fields.each { |field| if(params[field].nil?); fail = true; break; end }
-  return Freetable::FUNCTIONFAIL if fail
-
-	my_user = User.find_by_uid(params['uid'])
-
-	if(my_user.sid == params['sid'])
-		my_user.online = true
-		my_user.save 
-  	return Freetable::RETURNSUCCESS
-	end
-	return Freetable::RETURNFAIL
-end
-
 ####Per Room
 
 # Index for "room"
