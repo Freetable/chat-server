@@ -127,11 +127,6 @@ configure do
 	end
 end
 
-#this should push a static file from somewhere
-get '/' do
-#Cache for 600 seconds
-"High"
-end
 
 # This is for lb stuff eventually
 get '/health' do
@@ -187,10 +182,24 @@ end
 ####Per Room
 
 # Index for "room"
-get '/:room' do
+get '/Room' do
 #Cache for 60 seconds
-redirect './' if ((cookies[:WWUSERID].nil?)||(cookies[:sessionid].nil?))
-params[:room]+' '+cookies[:WWUSERID]+' '+cookies[:sessionid]
+	#redirect './' if ((cookies[:WWUSERID].nil?)||(cookies[:sessionid].nil?))
+	params[:room]+' '+cookies[:WWUSERID]+' '+cookies[:sessionid]
+end
+
+get '/sandbox/room' do
+	redirect './' if ((cookies[:WWUSERID].nil?)||(cookies[:sessionid].nil?))
+	user = Users.find_by_uid(cookies[:WWUSERID])
+	redirect './' if (user.nil?)	
+	
+	answer = validate_user(params[:uid], params[:sid])
+	if answer
+		user.username
+		#erb :room
+	else
+		redirect './'
+	end
 end
 
 # Send Message to "room"
@@ -252,5 +261,11 @@ get '/:room/link' do
       end
     end
   end
+end
+
+#this should push a static file from somewhere
+get '/' do
+#Cache for 600 seconds
+"High"
 end
 
