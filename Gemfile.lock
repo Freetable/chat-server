@@ -1,3 +1,9 @@
+GIT
+  remote: git://github.com/Freetable/ft-common.git
+  revision: 29d9f5f215ef9d9d35f80e16d06a4aa35094c6ca
+  specs:
+    ft-common (0.0.11)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -8,7 +14,7 @@ GEM
       i18n (~> 0.6, >= 0.6.4)
       multi_json (~> 1.0)
     addressable (2.3.5)
-    base32 (0.2.0)
+    base32 (0.3.0)
     bson (1.9.2)
     bson_ext (1.9.2)
       bson (~> 1.9.2)
@@ -31,7 +37,7 @@ GEM
       activemodel (~> 3.0)
       activesupport (~> 3.0)
       plucky (~> 0.5.2)
-    multi_json (1.8.2)
+    multi_json (1.8.4)
     plucky (0.5.2)
       mongo (~> 1.5)
     rack (1.5.2)
@@ -65,6 +71,7 @@ DEPENDENCIES
   bson_ext
   connection_pool
   em-synchrony
+  ft-common!
   hiredis (~> 0.4.5)
   json
   mongo_mapper
