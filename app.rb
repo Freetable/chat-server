@@ -143,7 +143,8 @@ get '/api/connect/:uid/:sid' do
 #"High aswell #{params[:uid]} @ #{params[:sid]}"
 answer = validate_user(params[:uid], params[:sid])
 if answer
-
+	cookies[:WWUSERID] = params[:uid]
+	cookies[:sessionid] = params[:sid]
 	return Freetable::RETURNSUCCESS
 else
 	return Freetable::RETURNFAIL
