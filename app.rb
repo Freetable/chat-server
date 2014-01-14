@@ -39,13 +39,13 @@ end
 # This is for the future atm!
 class Rooms
 	include MongoMapper::Document
-	key :name, String, :requried => true										# Room name
+	key :name, String, :requried => true								# Room name
 	key :owner_uuid, String, :required => true							# Owner uid
 	key :description, String, :required => true							# Room Description
-	key :last_played, Array																	# Array of songids
-	key :mods, Array																				# Array of moderators
-	key :current_users, Array																# Array of userids
-	many :bans																							# Embedded sublist of bans, the reason we don't do the same with users is there is no need for the data duplication
+	key :last_played, Array												# Array of songids
+	key :mods, Array													# Array of moderators
+	key :current_users, Array											# Array of userids
+	many :bans															# Embedded sublist of bans, the reason we don't do the same with users is there is no need for the data duplication
 	timestamps!
 end
 
@@ -72,26 +72,18 @@ class Staff
 	belongs_to :Metadata
 end
 
-# Archive Purposes
-# def digest_and_validate( base32 )
-#	#This needs to validate the user if authenticated as well.
-#
-#	payload = OpenStruct.new(JSON.parse(Base32.decode( base32 ),{ :symbolize_names => true }))
-#
-#  if(payload.from.nil?) then payload.valid = false; payload.error = 'bad from'; 		return payload; end
-#  if(payload.to.nil?) 	then payload.valid = false; payload.error = 'bad to';    		return payload; end
-#	if(payload.ver.nil?) 	then payload.valid = false; payload.error = 'bad version';	return payload; end
-#  if(payload.pay.nil?) 	then payload.valid = false; payload.error = 'bad payload';	return payload; end
-#
-#	payload.valid = true; payload.error = 'none'; return payload
-# end
-
 def validate_user(uid,sid)
 	# Check Redis
 	@@redis_pool.with do |redis|
 		r_result = redis.get(uid)
-		return true if ((!r_result.nil?)&&(r_result == sid))
+		if ((!r_result.nil?)&&(r_result == sid))
+			user = User.find_by_uid(params['uid'])
+			user.online = true
+			user.save
+			return true
+		end
 	end
+
 	# Check Network Services
 	
 	ns_result = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/verify_user.pls?wwuserid='+uid+'&sessionid='+sid).to_str).first)
@@ -150,28 +142,37 @@ get '/api/connect/:uid/:sid' do
 #No cache
 #"High aswell #{params[:uid]} @ #{params[:sid]}"
 answer = validate_user(params[:uid], params[:sid])
-return "perfect" if answer
-return "fake"
-end
+if answer
 
-post '/api/quit' do
-	my_fields = [ 'uid', 'sid' ]
-
-	my_fields.each { |field| if(params[field].nil?); fail = true; break; end }
-	return Freetable::FUNCTIONFAIL if fail
-
-  my_user = User.find_by_uid(params['uid'])
-	
-	if(my_user.sid == params['sid'])
-		my_user.online = false
-	  my_user.save
-		return Freetable::RETURNSUCCESS 
-	end
+	return Freetable::RETURNSUCCESS
+else
 	return Freetable::RETURNFAIL
 end
+end
 
-post '/api/heartbeat' do
-  my_fields = [ 'uid', 'sid' ]
+get '/api/quit/:uid/:sid' do
+	answer = validate_user(params[:uid], params[:sid])
+if answer
+	user = User.find_by_uid(params['uid'])
+	user.online = false
+	user.save
+	@@redis_pool.with { |redis| redis.delete(params[:uid]) }
+	return Freetable::RETURNSUCCESS
+else
+	return Freetable::RETURNFAIL
+end
+end
+
+get '/api/heartbeat/:uid/:sid' do
+answer = validate_user(params[:uid], params[:sid])
+if answer
+	@@redis_pool.with { |redis| redis.expire(params[:uid], 600) }
+	return Freetable::RETURNSUCCESS
+else
+	return Freetable::RETURNFAIL
+end
+end
+
 
   my_fields.each { |field| if(params[field].nil?); fail = true; break; end }
   return Freetable::FUNCTIONFAIL if fail
@@ -191,6 +192,7 @@ end
 # Index for "room"
 get '/:room' do
 #Cache for 60 seconds
+cookies[:WWUSERID]
 end
 
 # Send Message to "room"
