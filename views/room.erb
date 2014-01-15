@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="/ico/favicon.png">
+
+    <title><%= get_username %> @ <%= get_hostname %> -- Freetable</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Custom styles for this template -->
+    <link href="/css/custom.css" type="text/css" rel="stylesheet">
+    <link href="/css/jquery.mCustomScrollbar.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <!-- Wrap all page content here -->
+    <div id="wrap">
+
+      <!-- Fixed navbar -->
+      <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#"><%= get_room_name %></a>
+          </div>
+          <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+              <li><a href="/">Home</a></li>
+              <li class="active"><a href="#">Room</a></li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">System <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#">Action</a></li>
+                  <li><a href="#">Another action</a></li>
+                  <li><a href="#">Something else here</a></li>
+                  <li class="divider"></li>
+                  <li><a href="#">Switch Rooms</a></li>
+                  <li><a href="#">Logout</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+      <div class="clearfix">&nbsp;</div>
+      <div class="clearfix">&nbsp;</div>
+      <div class="clearfix">&nbsp;</div>
+      <!-- Begin page content -->
+
+      <div class="col-md-3">
+        <div class="col-md-12">
+          <p class="text-white">Songs</p>
+          <div id="songs_window" class="well text-white ft-window">
+          <p><span class="pull-right">Current Playlist</span></p>
+          <select class="form-control">
+            <option>Default</option>
+            <option>New Wave</option>
+            <option>Another Choice</option>
+          </select>
+          <br />
+          <button class="btn btn-block btn-xs btn-info">Take It Easy - The Eagles</button>
+          <button class="btn btn-block btn-xs btn-info">Jailbreak - Thin Lizzy</button>
+          </p>
+          </div>
+        </div>
+
+        <div class="col-md-12">
+        <p class="text-white">Queue</p>
+          <div id="queue_window" class="well text-white ft-window">
+          <button class="btn btn-block btn-xs btn-danger">Take It Easy - The Eagles</button>
+          <button class="btn btn-block btn-xs btn-info">Jailbreak - Thin Lizzy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 col-md-offset-6">
+      <div class="col-md-12">
+      <p class="text-white">Chat</p>
+      <div id="chatlog_window" class="well text-white ft-window">
+
+      <div class="well"><button class="btn btn-primary btn-xs ">Cisero</button> Yo </div>
+
+      <div class="well"><button class="btn btn-info btn-xs ">Ceasar</button> Whatup? </div>
+
+      <div class="well"><button class="btn btn-primary btn-xs ">Cisero</button> Think we can carry on a conservation without it turning into a monologue?</div>
+
+      <div class="well"><button class="btn btn-info btn-xs ">Ceasar</button> Would you like some ip sum lorem? </div>
+      <input type="text" class="form-control text-white" style="background-color: rgba(255,255,255,0);"></input>
+
+      </div>
+      </div>
+   
+      <div class="col-md-12">
+      <p class="text-white">Users</p>
+      <div id="userlist_window" class="well text-white ft-window">
+        <button class="btn btn-info btn-xs btn-block ">Ceasar</button>
+        <button class="btn btn-primary btn-xs btn-block ">Cisero</button>
+      </div></div>
+      </div>
+
+
+    </div>
+
+    <!-- <div id="footer">
+      <div class="col-md-12"><div class="well text-white">&nbsp;</div></div>
+    </div> -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <script src="js/jquery.mCustomScrollbar.concat.min.js"></script>
+
+  <script>
+    (function($){
+      $(window).load(function(){
+        $(".ft-window").mCustomScrollbar({
+          scrollButtons:{
+            enable:true
+          },
+          scrollInertia: 0,
+          theme:"light-thick"
+      
+        });
+      });
+    })(jQuery);
+  </script>
+
+  </body>
+</html>
