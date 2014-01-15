@@ -1,14 +1,23 @@
-#!/usr/bin/env ruby
-# ruby examples/echochat.rb
-
 set :server, 'thin'
 set :sockets, []
 
 #Constants (Todo: Move to another file)
-OWNERUUID 		= ''
+OWNERUUID 		      = ''
 #This isn't a hard limit btw this is used to define socket pools.  
-SOCKETS 			= 64
-NETWORKSERVICESURL = 'http://gatekeepers.freetable.info'
+MAXUSERS            = 64
+SOCKETS             = 64
+NETWORKSERVICESURL  = 'http://gatekeepers.freetable.info'
+TIMETOLIVE          = 600
+
+class String
+  def to_roomtitle
+    self.gsub(/::/, '/').
+    gsub(/([A-Z]+)([A-Z][a-z])/,'\1 \2').
+    gsub(/([a-z\d])([A-Z])/,'\1 \2').
+    tr("-", " ").
+    downcase.capitalize
+  end
+end
 
 #Ban sub doc
 class Ban
@@ -53,11 +62,11 @@ end
 class Metadata 
 	include MongoMapper::Document
 	# Name or short description of server
-  key :name, String
+ 	key :name, String
 	# Long description
-  key :description, String
+	key :description, String
 	# URL
-  key :url, String
+	key :url, String
 	key :current_users, Integer
 	key :max_users, Integer
 	key :uuid, String, :required => true
@@ -71,41 +80,82 @@ class Staff
 	belongs_to :Metadata
 end
 
+def get_current_users_count
+  Users.find_by_online(true).all.count
+end
+
+def get_current_users
+  Users.find_by_online(true).all
+end
+
+def get_max_users
+  MAXUSERS
+end
+
+def get_metadata
+  Metadata.all.first
+end
+
+def get_hostname
+  Metadata.all.first.name
+end
+
+def get_uid
+  cookies[:WWUSERID]
+end
+
+def get_sid
+  cookies[:sessionid]
+end
+
+def get_username
+  Users.find_by_uid(get_uid).username
+end
+
+def validate_user_with_cookies
+  validate_user(cookies[:WWUSERID], cookies[:sessionid])
+end
+
+
+
+
 def validate_user(uid,sid)
-	# Create Record for user if it doesn't already exist
-  if(Users.find_by_uid(params['uid']).nil?)
-      user = Users.new
-      user.uid = uid
-      user.username = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/query_user.pls?wwuserid='+uid).to_str).first).result
+
+  # Check Redis
+
+  @@redis_pool.with do |redis|
+    r_result = redis.get(uid)
+    # If result is not nil and the result of the key uid is sid
+    if ((!r_result.nil?)&&(r_result == sid))
+      # If Redis has the user, the user should have already been created
+      redis.expire(uid,TIMETOLIVE)
+      user = Users.find_by_uid(uid)
+      user.online = true
       user.save
+      return true
     end
+  end
 
-	# Check Redis
-	@@redis_pool.with do |redis|
-		r_result = redis.get(uid)
-		if ((!r_result.nil?)&&(r_result == sid))
-			user = Users.find_by_uid(params['uid'])
-			user.online = true
-			user.save
-			return true
-		end
-	end
+  # If the person isn't in Redis, does Network Services know about ya?
 
-	# Check Network Services
-	
-	ns_result = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/verify_user.pls?wwuserid='+uid+'&sessionid='+sid).to_str).first)
-	if (ns_result.result.to_i == 1)
-		user = Users.find_by_uid(params['uid'])
-		user.online = true
-		user.save
-		@@redis_pool.with do |redis|
-			redis.set(uid, sid)
-			redis.expire(uid, 600)
-		end
-		return true
-	else
-		return false
-	end
+  ns_result = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/verify_user.pls?wwuserid='+uid+'&sessionid='+sid).to_str).first).result.to_i
+  logger.info("validate_user(#{uid}, #{sid}) network services result: #{ns_result}")
+  if (ns_result == 1)
+    user = Users.find_by_uid(uid) || Users.new
+    user.uid = uid
+    username = OpenStruct.new(JSON.parse(RestClient.get(NETWORKSERVICESURL + '/api/query_user.pls?wwuserid='+uid).to_str).first).result
+    logger.info('validate_user.username: '+ username)
+    user.username = username
+    user.online = true
+    user.save
+    #Update Redis
+    @@redis_pool.with do |redis|
+      redis.set(uid,sid)
+      redis.expire(uid,TIMETOLIVE)
+    end
+  else
+    return false
+  end
 end
 
 configure do
@@ -144,62 +194,48 @@ end
 
 #This should be coming to set the cookies and redirect to /
 get '/api/connect/:uid/:sid' do
-#No cache
-#"High aswell #{params[:uid]} @ #{params[:sid]}"
-answer = validate_user(params[:uid], params[:sid])
-if answer
-	cookies[:WWUSERID] = params[:uid]
-	cookies[:sessionid] = params[:sid]
-	return Freetable::RETURNSUCCESS
-else
-	return Freetable::RETURNFAIL
-end
+  #No cache
+  #"High aswell #{params[:uid]} @ #{params[:sid]}"
+  answer = validate_user(params[:uid], params[:sid])
+  if answer
+    cookies[:WWUSERID] = params[:uid]
+    cookies[:sessionid] = params[:sid]
+    return Freetable::RETURNSUCCESS
+  else
+    return Freetable::RETURNFAIL
+  end
 end
 
 get '/api/quit/:uid/:sid' do
 	answer = validate_user(params[:uid], params[:sid])
-if answer
-	user = Users.find_by_uid(params['uid'])
-	user.online = false
-	user.save
-	@@redis_pool.with { |redis| redis.delete(params[:uid]) }
-	return Freetable::RETURNSUCCESS
-else
-	return Freetable::RETURNFAIL
-end
+  if answer
+    user = Users.find_by_uid(params['uid'])
+    user.online = false
+    user.save
+    @@redis_pool.with { |redis| redis.delete(params[:uid]) }
+    return Freetable::RETURNSUCCESS
+  else
+    return Freetable::RETURNFAIL
+  end
 end
 
 get '/api/heartbeat/:uid/:sid' do
-answer = validate_user(params[:uid], params[:sid])
-if answer
-	@@redis_pool.with { |redis| redis.expire(params[:uid], 600) }
-	return Freetable::RETURNSUCCESS
-else
-	return Freetable::RETURNFAIL
-end
+  answer = validate_user(params[:uid], params[:sid])
+  if answer
+    @@redis_pool.with { |redis| redis.expire(params[:uid], 600) }
+    return Freetable::RETURNSUCCESS
+  else
+    return Freetable::RETURNFAIL
+  end
 end
 
 ####Per Room
 
 # Index for "room"
-get '/Room' do
-#Cache for 60 seconds
-	#redirect './' if ((cookies[:WWUSERID].nil?)||(cookies[:sessionid].nil?))
-	params[:room]+' '+cookies[:WWUSERID]+' '+cookies[:sessionid]
-end
-
-get '/sandbox/room' do
-	redirect './' if ((cookies[:WWUSERID].nil?)||(cookies[:sessionid].nil?))
-	user = Users.find_by_uid(cookies[:WWUSERID])
-	redirect './' if (user.nil?)	
-	
-	answer = validate_user(params[:uid], params[:sid])
-	if answer
-		user.username
-		#erb :room
-	else
-		redirect './'
-	end
+get '/:room' do
+  #Cache for 60 seconds
+  redirect './' if !validate_user_with_cookies
+  erb :room, :locals => {:get_room => params[:room], :get_room_name => params[:room].to_roomtitle }
 end
 
 # Send Message to "room"
@@ -216,7 +252,6 @@ get '/:room/send_msg/:msg' do
 	else
 		return Freetable::RETURNFAIL
 	end
-	
 end
 
 
@@ -246,15 +281,9 @@ get '/:room/link' do
         	on.message do |channel, message|
           	ws.send message
         	end
-
       	end
-
       end
-      
-			ws.onmessage do |msg|
-        EM.next_tick { settings.sockets.each{|s| s.send(msg) } }
-      end
-      
+          
 			ws.onclose do
         warn("wetbsocket closed")
         settings.sockets.delete(ws)
