@@ -21,6 +21,185 @@
   </head>
 
   <body>
+  <!-- This is a template for our dialog boxes
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div><!-- /.modal-content 
+  </div><!-- /.modal-dialog 
+</div><!-- /.modal -->
+
+    <div class="modal fade" id="sendServerAlertStaffModal" tabindex="-1" role="dialog" aria-labelledby="sendServerAlertStaffModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="sendServerAlertStaffModalLabel">Send System-wide Alert</h4>
+          </div>
+          <div class="modal-body">
+            <form role="form">
+              <div class="form-group">
+                <label for="sendServerAlertStaffModalData">Enter Message</label>
+                <input type="text" class="form-control" id="sendServerAlertStaffModalData" placeholder="Enter message">
+              </div>          
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+            <button type="button" class="btn btn-success">Send</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="sendServerAlertOwnerModal" tabindex="-1" role="dialog" aria-labelledby="sendServerAlertOwnerModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="sendServerAlertOwnerModalLabel">Send System-wide Alert</h4>
+          </div>
+          <div class="modal-body">
+            <form role="form">
+              <div class="form-group">
+                <label for="sendServerAlertOwnerModalData">Enter Message</label>
+                <input type="text" class="form-control" id="sendServerAlertOwnerModalData" placeholder="Enter message">
+              </div>          
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+            <button type="button" class="btn btn-success">Send</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="createRoomOwnerModal" tabindex="-1" role="dialog" aria-labelledby="createRoomOwnerModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="createRoomOwnerModalLabel">Create Room</h4>
+          </div>
+          <div class="modal-body">
+            <form role="form">
+              <div class="form-group">
+                <label for="createRoomOwnerModalName">Enter Room Name</label>
+                <input type="text" class="form-control" id="createRoomOwnerModalName" placeholder="Enter name">
+              </div>          
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="restartOwnerModal" tabindex="-1" role="dialog" aria-labelledby="restartOwnerModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="restartOwnerModalLabel">Restart Server</h4>
+          </div>
+          <div class="modal-body">
+          Are you sure?  Once you click Yes there is no undo!
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+            <button type="button" class="btn btn-danger">Yes</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="shutdownOwnerModal" tabindex="-1" role="dialog" aria-labelledby="shutdownOwnerModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="shutdownOwnerModalLabel">Shutdown Server</h4>
+          </div>
+          <div class="modal-body">
+          Are you sure?  Once you click Yes there is no undo!
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+            <button type="button" class="btn btn-danger">Yes</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="updateOwnerPreferencesModal" tabindex="-1" role="dialog" aria-labelledby="updateOwnerPreferencesModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="updateOwnerPreferencesModalLabel">Update Owner Preferences</h4>
+          </div>
+          <div class="modal-body">
+            <div class="checkbox"><label><input id="updateOwnerPreferencesModalValue1" type="checkbox"> Users Can Create Rooms</label></div>
+            <div class="checkbox"><label><input id="updateOwnerPreferencesModalValue2" type="checkbox"> Staff Can Send Server-wide Alerts</label></div>
+            <div class="checkbox"><label><input id="updateOwnerPreferencesModalValue3" type="checkbox"> Staff Can Create Rooms</label></div>
+            <div class="checkbox"><label><input id="updateOwnerPreferencesModalValue4" type="checkbox"> Staff Can Delete Rooms</label></div>
+            <div class="checkbox"><label><input id="updateOwnerPreferencesModalValue5" type="checkbox"> Staff Can Ban Users</label></div>
+            <div class="checkbox"><label><input id="updateOwnerPreferencesModalValue6" type="checkbox"> Staff Can UnBan Users</label></div>
+            <div class="checkbox"><label><input id="updateOwnerPreferencesModalValue7" type="checkbox"> Publicly List This Server</label></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="updateServerMetadataModal" tabindex="-1" role="dialog" aria-labelledby="updateServerMetadataModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="updateServerMetadataModalLabel">Update Server Metadata</h4>
+          </div>
+          <div class="modal-body">
+            <form role="form">
+              <div class="form-group">
+                <label for="updateServerMetadataModalName">System Name</label>
+                <input type="text" class="form-control" id="updateServerMetadataModalName" placeholder="Enter name">
+              </div>
+              <div class="form-group">
+                <label for="updateServerMetadataModalDescr">System Description</label>
+                <input type="text" class="form-control" id="updateServerMetadataModalDescr" placeholder="Enter description">
+              </div>
+              <div class="form-group">
+                <label for="updateServerMetadataModalURL">System Root URL</label>
+                <input type="text" class="form-control" id="updateServerMetadataModalURL" placeholder="Enter URL">
+              </div>
+              <div class="form-group">
+                <label for="updateServerMetadataModalMaxUsers">System Max Users</label>
+                <input type="text" class="form-control" id="updateServerMetadataModalMaxUsers" placeholder="Enter Max Users">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
     <!-- Wrap all page content here -->
     <div id="wrap">
@@ -46,8 +225,8 @@
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">System <b class="caret"></b></a>
                 <ul class="dropdown-menu">
                   <li><a href="#">Upload Song From Disk</a></li>
-                  <li><a href="#">Save Song To Playlist</a></li>
-                  <li><a href="#">Save Song To Disk</a></li>
+                  <li><a href="#">Save Current Song To Playlist</a></li>
+                  <li><a href="#">Save Current Song To Disk</a></li>
                   <li class="divider"></li>
                   <li><a href="#">Create Playlist</a></li>
                   <li><a href="#">Rename Playlist</a></li>
@@ -64,29 +243,27 @@
                 <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Staff <b class="caret"></b></a>
                 <ul class="dropdown-menu">
-                  <li><a href="#">Send Alert</a></li>
-                  <li><a href="#">Skip Song</a></li>
+                  <li><a href="#">Skip Song Forcefully</a></li>
                   <li class="divider"></li>
-                  <li><a href="#">Remove User From Queue</a></li>                  
+                  <li><a href="#">Send Room-wide Alert</a></li>
+                  <li><a href="#">Send System-wide Alert</a></li>
                   <li class="divider"></li>
-                  <li><a href="#">Kick User</a></li>
-                  <li class="divider"></li>
-                  <li><a href="#">Ban User</a></li>
                   <li><a href="#">Ban List</a></li>
                 </ul>    
               </li>             
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Owner <b class="caret"></b></a>
                 <ul class="dropdown-menu">
-                  <li><a href="#">Send Alert</a></li>
+                  <li><a href="#" onclick="$('#sendServerAlertOwnerModal').modal({ show: true }); return false;">Send Server-wide Alert</a></li>
                   <li class="divider"></li>
-                  <li><a href="#">Create Room</a></li>
+                  <li><a href="#" onclick="$('#createRoomOwnerModal').modal({ show: true }); return false;">Create Room</a></li>
                   <li><a href="#">Delete Room</a></li>
                   <li class="divider"></li>
-                  <li><a href="#">Update Metadata</a></li>
+                  <li><a href="#" onclick="$('#updateServerMetadataModal').modal({ show: true }); return false;">Update Metadata</a></li>
+                  <li><a href="#" onclick="$('#updateOwnerPreferencesModal').modal({ show: true }); return false;">Update Preferences</a></li>
                   <li class="divider"></li>
-                  <li><a href="#">Restart Server</a></li>
-                  <li><a href="#">Shutdown Server</a></li>
+                  <li><a href="#" onclick="$('#restartOwnerModal').modal({ show: true }); return false;">Restart Server</a></li>
+                  <li><a href="#" onclick="$('#shutdownOwnerModal').modal({ show: true }); return false;">Shutdown Server</a></li>
                 </ul>    
               </li>
             </ul>

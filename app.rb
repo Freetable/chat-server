@@ -67,10 +67,10 @@ class Metadata
 	key :description, String
 	# URL
 	key :url, String
-	key :current_users, Integer
 	key :max_users, Integer
 	key :uuid, String, :required => true
 	many :staffs
+  many :owners
 end
 
 class Staff
@@ -78,6 +78,12 @@ class Staff
 	key :uuid, String
 	key :acl_level, String
 	belongs_to :Metadata
+end
+
+class Owner
+  include MongoMapper::Document
+  key :uuid, String
+  belongs_to :Metadata
 end
 
 class WebsocketFunctions
