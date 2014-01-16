@@ -6,7 +6,7 @@ OWNERUUID 		      = ''
 #This isn't a hard limit btw this is used to define socket pools.  
 MAXUSERS            = 64
 SOCKETS             = 64
-NETWORKSERVICESURL  = 'http://gatekeepers.freetable.info'
+NETWORKSERVICESURL  = 'https://gatekeepers.freetable.info'
 TIMETOLIVE          = 600
 
 class String
@@ -367,9 +367,9 @@ get '/api/connect/:uid/:sid' do
   if answer
     cookies[:WWUSERID] = params[:uid]
     cookies[:sessionid] = params[:sid]
-    return Freetable::RETURNSUCCESS
+    redirect '/'
   else
-    return Freetable::RETURNFAIL
+    redirect NETWORKSERVICESURL
   end
 end
 
@@ -425,7 +425,8 @@ end
 
 #this should push a static file from somewhere
 get '/' do
+redirect NETWORKSERVICESURL if !validate_user_with_cookies
 #Cache for 600 seconds
-  redirect NETWORKSERVICESURL
+	erb :index
 end
 
