@@ -82,11 +82,12 @@
                   <li><a href="#">Create Room</a></li>
                   <li><a href="#">Delete Room</a></li>
                   <li class="divider"></li>
+                  <li><a href="#">Update Metadata</a></li>
+                  <li class="divider"></li>
                   <li><a href="#">Restart Server</a></li>
                   <li><a href="#">Shutdown Server</a></li>
                 </ul>    
               </li>
-              <li><a href="#">User: <%= get_username%></a></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -162,15 +163,14 @@
       <div class="col-md-6">
         <p class="text-white">Queue</p>
         <div id="userlist_window" class="well text-white ft-window ft-parent">
-          <div class="col-md-12"><button class="btn btn-info btn-xs btn-block ">Ceasar</button></div>
-          <div class="col-md-12"><button class="btn btn-primary btn-xs btn-block ">Cisero</button></div>
+          <div class="col-md-12"><button class="btn btn-primary btn-xs btn-block">Cisero</button></div>
         </div>
       </div>
       <div class="col-md-6">
         <p class="text-white">Users</p>
           <div id="userlist_window" class="well text-white ft-window ft-parent">
-            <div class="col-md-12"><button class="btn btn-info btn-xs btn-block ">Ceasar</button></div>
-            <div class="col-md-12"><button class="btn btn-primary btn-xs btn-block ">Cisero</button></div>
+          <div class="col-md-12"><button class="btn btn-info btn-xs btn-block" uid="<%= get_uid %>"><%= get_username %></button></div>
+          <div class="col-md-12"><button class="btn btn-primary btn-xs btn-block ">Cisero</button></div>
           </div>
         </div>
 
@@ -178,14 +178,7 @@
         <p class="text-white">Chat</p>
         <div id="chatlog_parent" class="well text-white ft-parent">
           <div id="chatlog_window" class="ft-window" style="height: 330px">
-            <div class="my-well"><button class="btn btn-primary btn-xs ">Cisero</button> Yo </div>
-            <div class="my-well"><button class="btn btn-info btn-xs ">Ceasar</button> Whatup? </div>
-            <div class="my-well"><button class="btn btn-primary btn-xs ">Cisero</button> Think we can carry on a conservation without it turning into a monologue?</div>
-            <div class="my-well"><button class="btn btn-info btn-xs ">Ceasar</button> Would you like some ip sum lorem? </div>
-            <div class="my-well"><button class="btn btn-info btn-xs ">Ceasar</button> Would you like some ip sum lorem? </div>
-            <div class="my-well"><button class="btn btn-info btn-xs ">Ceasar</button> Would you like some ip sum lorem? </div>
-            <div class="my-well"><button class="btn btn-info btn-xs ">Ceasar</button> Would you like some ip sum lorem? </div>
-            <div class="my-well"><button class="btn btn-info btn-xs ">Ceasar</button> Would you like some ip sum lorem? </div>
+            <div class="my-well"><button class="btn btn-primary btn-xs">Cisero</button> Yo </div>
           </div>
       
           <input id="chatlog_window_input" type="text" class="form-control text-white" style="background-color: rgba(255,255,255,0);" placeholder="Say Something" onkeypress="send_message(event)"></input>

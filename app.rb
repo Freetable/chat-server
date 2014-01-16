@@ -80,6 +80,157 @@ class Staff
 	belongs_to :Metadata
 end
 
+class WebsocketFunctions
+  # payload, redis, websocket
+
+  def initialize(uid, redis, ws)
+    @uid = uid
+    @redis = redis
+    @ws = ws
+  end
+
+
+  def f111(p)
+    # Server To Client
+    # Message
+    # Payload includes from, to, level, data
+    # From will be the chat servers uuid if it's from the server
+    # To will either be the uuid of the person it's directly to
+    # Or 0 for everyone
+
+  end
+
+  def f112(p)
+    # Server To Client
+    # Alert
+    # Payload includes from, level, data
+    # From will be the chat servers uuid if it's from the server
+
+  end
+
+  def f121(p)
+    # Server To Client
+    # Userlist
+    # use a function to return a user list to cut down on code dup with function 621
+    # Payload is an array of hashs [{:name => '', :uid => '', :level => ''},{:name => '', :uid => '', :level => ''}]
+  end
+
+  def f122(p)
+    # Server To Client
+    # Useradd
+    # Payload includes: name, uid, level
+  end
+
+  def f123(p)
+    # Server To Client
+    # Userdel
+    # Payload includes: uid
+  end
+
+  def f131(p)
+    # Server To Client
+    # Queuelist
+    # Payload is an array of hashs [:uid,:uid,:uid,:uid,:uid]
+  end
+
+  def f132(p)
+    # Server To Client
+    # Queueadd
+    # Payload includes: uid
+  end
+
+  def f133(p)
+    # Server To Client
+    # Queuedel
+    # Payload includes: uid
+  end
+
+  def f134(p)
+    # Server To Client
+    # Queuepos
+    # Payload includes: index
+  end
+
+  def f141(p)
+    # Server To Client
+    # Nextsong
+    # Payload includes: uid, skip
+  end
+
+  def f142(p)
+    # Server To Client
+    # Noop
+    # Payload is blank
+  end
+
+  def f143(p)
+    # Server To Client
+    # Ping?
+    # Payload is blank
+  end
+
+  def f611(p)
+    # Client To Server
+    # Message
+    # Payload includes: to, data, level
+    # to is either uid of receiver or 0 for everyone
+    # Use Redis bus
+  end
+
+  def f612(p)
+    # Client To Server
+    # Message
+    # Payload includes: to, data, level
+    # to is either uid of receiver or 0 for everyone
+    # Use Redis bus
+  end
+
+  def f621(p)
+    # Client To Server
+    # Userlist
+    # Use the redis bus to trigger a server to client userlist
+  end
+
+  def f631(p)
+    # Client To Server
+    # Useradd
+    # See if there is an avaiable spot
+    # Add us
+    # Use the redis bus to trigger a server to client useradd 
+  end
+
+  def f632(p)
+    # Client To Server
+    # Userdel
+    # See if we are up there
+    # Remove us
+    # Use the redis bus to trigger a server to client userdel
+  end
+
+  def f641(p)
+    # Client To Server
+    # Skip
+    # If it's our song playing then skip it right meow
+    # If it's not our song, then increment the tally to skip
+    # If enough tallyed then force skip song using redis bus
+  end
+
+  def f642(p)
+    # Client To Server
+    # Noop
+  end
+
+  def f643(p)
+    # Client To Server
+    # Pong
+  end
+
+  def f644(p)
+    # Client To Server
+    # Part
+  end
+end
+
 def get_current_users_count
   Users.find_by_online(true).all.count
 end
@@ -116,8 +267,28 @@ def validate_user_with_cookies
   validate_user(cookies[:WWUSERID], cookies[:sessionid])
 end
 
+# Build Function  -- Simplify logic down below
+def bf(fn, data)
+  { :function => fn, :payload => data}.to_json
+end
 
+def process_function(args)
+  ftmsg = args[:ftmsg]
+  uid = args[:uid]
+  redis = args[:redis]
+  ws = args[:ws]
+  
+  return false if ftmsg.function.nil?
+  return false if ftmsg.payload.nil?
 
+  wsf = WebsocketFunctions.new(uid, redis, ws)
+  
+  logger.info('wsf started')
+
+  wsf.send('f'+ftmsg.function, ftmsg.payload) if wsf.respond_to?('f'+ftmsg.function)
+  return true if wsf.respond_to?(ftmsg.function)
+  return false
+end
 
 def validate_user(uid,sid)
 
@@ -188,10 +359,6 @@ get '/api/meta' do
 #Cache for 60 seconds
 end
 
-get '/api/users' do
-#Cache 30 seconds
-end
-
 #This should be coming to set the cookies and redirect to /
 get '/api/connect/:uid/:sid' do
   #No cache
@@ -200,29 +367,6 @@ get '/api/connect/:uid/:sid' do
   if answer
     cookies[:WWUSERID] = params[:uid]
     cookies[:sessionid] = params[:sid]
-    return Freetable::RETURNSUCCESS
-  else
-    return Freetable::RETURNFAIL
-  end
-end
-
-get '/api/quit/:uid/:sid' do
-	answer = validate_user(params[:uid], params[:sid])
-  if answer
-    user = Users.find_by_uid(params['uid'])
-    user.online = false
-    user.save
-    @@redis_pool.with { |redis| redis.delete(params[:uid]) }
-    return Freetable::RETURNSUCCESS
-  else
-    return Freetable::RETURNFAIL
-  end
-end
-
-get '/api/heartbeat/:uid/:sid' do
-  answer = validate_user(params[:uid], params[:sid])
-  if answer
-    @@redis_pool.with { |redis| redis.expire(params[:uid], 600) }
     return Freetable::RETURNSUCCESS
   else
     return Freetable::RETURNFAIL
@@ -238,63 +382,50 @@ get '/:room' do
   erb :room, :locals => {:get_room => params[:room], :get_room_name => params[:room].to_roomtitle }
 end
 
-# Send Message to "room"
-get '/:room/send_msg/:msg' do
-#No Cache
-  payload = OpenStruct.new(JSON.parse(Base32.decode( params[:msg] ),{ :symbolize_names => true }))
-
-  if(payload.userid.nil?) then return FUNCTIONFAIL; end
-  if(payload.sessionid.nil?) then return FUNCTIONFAIL; end
-  if(payload.message.nil?) then return FUNCTIONFAIL; end
-
-	if(validate_user(userid, sessionid))
-		# Connect to redis and post
-	else
-		return Freetable::RETURNFAIL
-	end
-end
-
-
 # Websocket for "room"
 get '/:room/link' do
 #No Cache
-  if !request.websocket?
-    redirect "./"
-  else
-    request.websocket do |ws|
+  get_room = params[:room]
+  redirect './' if !validate_user_with_cookies || !request.websocket?
+  
+  request.websocket do |ws|
+    
+    redis = Redis.new( :driver => :synchrony, :host => ENV['OPENSHIFT_REDIS_HOST'], :port => ENV['OPENSHIFT_REDIS_PORT'], :password => ENV['REDIS_PASSWORD'], :timeout => 0)
 		
-			redis = Redis.new( :driver => :synchrony, :host => ENV['OPENSHIFT_REDIS_HOST'], :port => ENV['OPENSHIFT_REDIS_PORT'], :password => ENV['REDIS_PASSWORD'] )
-  		
-			ws.onopen do
-        ws.send("Hello World!")
-        settings.sockets << ws
+		ws.onopen do
+      ws.send(bf(142,''))
+      settings.sockets << ws
+    	redis.subscribe(get_room) do |on|
 
-      	redis.subscribe(params[:room]) do |on|
-
-        	on.subscribe do |channel, subscriptions|
-        		# puts "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
-						wsdata = Hash.new
-						wsdata[:misc] = "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
-          	ws.send wsdata.to_json
-        	end
-
-        	on.message do |channel, message|
-          	ws.send message
-        	end
+      	on.subscribe do |channel, subscriptions|
+      		# puts "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
+          # Send a user joined message to the room
+          redis.publish(get_room, bf(122,{:name => get_username, :uuid => get_uid}))
       	end
-      end
-          
-			ws.onclose do
-        warn("wetbsocket closed")
-        settings.sockets.delete(ws)
-      end
+
+      	on.message do |channel, message|
+          # Server To Client
+          process_function(:ftmsg => OpenStruct.new(JSON.parse(message)), :uid => get_uid, :redis => redis, :ws => ws)
+      	end
+    	end
+    end
+        
+		ws.onclose do
+      warn("websocket closed")
+      settings.sockets.delete(ws)
+    end
+
+    ws.onmessage do |message|
+      #Client To Server
+      process_function(:ftmsg => OpenStruct.new(JSON.parse(message)), :uid => get_uid, :redis => redis, :ws => ws)
     end
   end
 end
 
+
 #this should push a static file from somewhere
 get '/' do
 #Cache for 600 seconds
-"High"
+  redirect NETWORKSERVICESURL
 end
 
