@@ -53,18 +53,18 @@ html {
 .my-well {
   min-height: 1px;
   padding-right: 1px;
-  padding-left: 1px;
+  padding-left: 2px;
   padding-top: 1px;
-  padding-bottom: 1px;
+  padding-bottom: 2px;
   background-color: rgba(0,0,0,0.45);
 }
 
 .alert-well {
   min-height: 1px;
   padding-right: 1px;
-  padding-left: 1px;
+  padding-left: 2px;
   padding-top: 1px;
-  padding-bottom: 1px;
+  padding-bottom: 2px;
   background-color: rgba(128,0,0,0.45);
 }
 
